@@ -5,13 +5,15 @@ public class GridManager : MonoBehaviour
 {
     public int width, height;
     public Tile tilePrefab;
-    public GameObject asteroidPrefab; // <-- assign your asteroid prefab here
-    public Transform cam;
+    public GameObject asteroidPrefab;
 
     private Dictionary<Vector2, Tile> tiles;
 
     [Range(0f, 1f)]
-    public float obstacleChance = 0.15f; // 15% chance per tile
+    public float obstacleChance = 0.15f;
+
+    // Optional: where the player should spawn
+    public Vector2 playerSpawnPosition = Vector2.zero; // default: bottom-left corner
 
     void Start()
     {
@@ -26,13 +28,20 @@ public class GridManager : MonoBehaviour
         {
             for (int y = 0; y < height; y++)
             {
-                // Create a walkable tile first
+                var pos = new Vector2(x, y);
+
+                // Create tile
                 var spawnedTile = Instantiate(tilePrefab, new Vector3(x, y, 0), Quaternion.identity);
                 spawnedTile.name = $"Tile {x} {y}";
                 spawnedTile.transform.parent = transform;
 
-                // Randomly assign obstacle
-                bool isObstacle = Random.value < obstacleChance;
+                bool isObstacle = false;
+
+                // Only randomly place obstacle if it's NOT the player spawn
+                if (pos != playerSpawnPosition)
+                {
+                    isObstacle = Random.value < obstacleChance;
+                }
 
                 if (isObstacle)
                 {
@@ -48,12 +57,9 @@ public class GridManager : MonoBehaviour
                     spawnedTile.Init(false);
                 }
 
-                tiles[new Vector2(x, y)] = spawnedTile;
+                tiles[pos] = spawnedTile;
             }
         }
-
-        // Center the camera
-        cam.transform.position = new Vector3((float)width / 2 - 0.5f, (float)height / 2 - 0.5f, -10);
     }
 
     public Tile GetTileAtPosition(Vector2 pos)
